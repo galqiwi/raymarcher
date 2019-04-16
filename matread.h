@@ -12,7 +12,7 @@ public:
 		input = (unsigned char*)(M.data);
 	}
 	uchar& get(int x, int y, int ch) {
-		return input[3 * width * x + y * 3 + ch];
+		return input[3 * width * y + x * 3 + ch];
 	}
 	unsigned char *input;
 	int width;

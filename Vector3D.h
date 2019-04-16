@@ -12,7 +12,7 @@ public:
 };
 
 ostream& operator<<(ostream& out, const Vector3D& v) {
-	out << v.x << " " << v.y << " " << v.z << endl;
+	out << v.x << " " << v.y << " " << v.z;
 	return out;
 }
 istream& operator>>(istream& in, Vector3D& v) {
