@@ -21,7 +21,7 @@ Vector3D frac(Vector3D a) {
 }
 
 pt distance2scene(Vector3D p) {
-	pt dist = (abs(frac(p) - Vector3D(0.5, 0.5, 0.5)) - 0.2);
+	pt dist = max((abs((p) - Vector3D(0.4, 0.5, 0.5)) - 0.2), -(abs((p) - Vector3D(0.6, 0.5, 0.6)) - 0.2));
 	return dist > 0 ? dist:0;
 }
 
@@ -29,19 +29,27 @@ int maxFinalStep = 0;
 
 pt trace(Vector3D p, Vector3D to) {
 	pt path = 0.0;
+	pt dpath_old = 1;
 	int finalStep = MAX_RAY_STEPS - 1;
+	pt light_k = 0;
 	for (int i = 0; i < MAX_RAY_STEPS; i++) {
 		Vector3D current_p = p + to * path;
 		pt dpath = distance2scene(current_p);
+		light_k = dpath / dpath_old;
 		if (dpath < MIN_DIST) {
 			finalStep = i;
 			break;
 		}
 		path += dpath;
+		dpath_old = dpath;
 		//cout << i << " " << path << endl;
 	}
-	if (finalStep != MAX_RAY_STEPS - 1)
+	if (finalStep != MAX_RAY_STEPS - 1) {
 		maxFinalStep = max(maxFinalStep, finalStep);
+		return 1 - light_k;
+	} else {
+		return 0;
+	}
 	return 1 - (1.0 * (finalStep - 1) / (MAX_RAY_STEPS - 2));
 }
 
@@ -53,7 +61,7 @@ void frame_(int frame_id, int xmin, int xmax) {
 			pt ax = +((((pt)x) / (PIC_SIZE_W - 1)) * 2. - 1.) * X_VIEW;
 			pt ay = -((((pt)y) / (PIC_SIZE_H - 1)) * 2. - 1.) * Y_VIEW;
 			Vector3D to = Vector3D(sin(ax), cos(ax) * sin(ay), -cos(ax) * cos(ay));
-			int brightness = 255 * trace(Vector3D(frame_id / 60., 0, 0.5), to);
+			int brightness = 255 * trace(Vector3D(0.5, 0.5, 1), to);
 			//brightness = distance2scene(Vector3D(x / 100. - 1, 0, -y / 100. - 1)) * 255;
 			mr.get(x, y, 0) = brightness;
 			mr.get(x, y, 1) = brightness;
