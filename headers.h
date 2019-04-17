@@ -4,13 +4,19 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <string>
+#include <thread>
 
-#include <opencv2/core/types_c.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/videoio/videoio.hpp>
-#include <opencv2/videoio/registry.hpp>
+#include <opencv.hpp>
+#include <core/types_c.h>
+#include <core/core.hpp>
+#include <highgui/highgui.hpp>
+#include <opencv.hpp>
+#include <videoio.hpp>
+#include <videoio/videoio.hpp>
+#include <videoio/registry.hpp>
+#include <imgproc/imgproc.hpp>
+
 
 using namespace std;
 using namespace cv;
