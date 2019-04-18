@@ -17,24 +17,43 @@ pt frac(const pt& p) {
 }
 
 Vector3D frac(Vector3D a) {
-	return Vector3D(frac(a.x), frac(a.y), frac(a.z));
+	return Vector3D(frac(a.x), (a.y), frac(a.z));
 }
 
-pt distance2scene(Vector3D p) {
-	pt dist = max((abs((p) - Vector3D(0.4, 0.5, 0.5)) - 0.2), -(abs((p) - Vector3D(0.6, 0.5, 0.6)) - 0.2));
-	return dist > 0 ? dist:0;
+class distColor {
+public:
+	distColor(pt dist, Vector3D color): dist(dist), color(color) {}
+	pt dist;
+	Vector3D color;
+};
+
+pt distance2scene(Vector3D p, int frame_id) {
+	pt dist1 = (abs(frac(p) - Vector3D(0.5 - 0.1 * frame_id * 0.1 / 4.0, 0.5, 0.5)) - 0.05);
+	//Vector3D color1(1, 0, 0);
+	pt dist2 = (abs(frac(p) - Vector3D(0.5 + 0.1 * frame_id * 0.1 / 4.0, 0.5, 0.5)) - 0.05);
+	//Vector3D color2(0, 1, 0);
+	//dist = max(dist, -(abs(frac(p) - Vector3D(0.5 + frame_id * 0.01, 0.5, 0.5 + frame_id * 0.01)) - 0.2));
+	//dist = max(dist, -(abs((p) - Vector3D(0.5 - frame_id * 0.002, 0.5, 0.5 - frame_id * 0.002)) - 0.2));
+	//dist = min(dist, +(abs((p) - Vector3D(0.5, 0.5, 0.5)) - 0.05));
+	pt k = 0.4;
+	pt h = max((k - abs(dist1 - dist2)), 0.) / k;
+	//pt color_h = max((k - abs(dist1 - dist2)), 0.) / k;
+	pt dist = min(dist1, dist2) - h * h * h * k / 6.0;
+	return max(dist, 0.);
 }
 
 int maxFinalStep = 0;
+pt maxL = 0;
+pt minL = 0;
 
-pt trace(Vector3D p, Vector3D to) {
+pt trace(Vector3D p, Vector3D to, int frame_id) {
 	pt path = 0.0;
 	pt dpath_old = 1;
 	int finalStep = MAX_RAY_STEPS - 1;
 	pt light_k = 0;
 	for (int i = 0; i < MAX_RAY_STEPS; i++) {
 		Vector3D current_p = p + to * path;
-		pt dpath = distance2scene(current_p);
+		pt dpath = distance2scene(current_p, frame_id);
 		light_k = dpath / dpath_old;
 		if (dpath < MIN_DIST) {
 			finalStep = i;
@@ -46,7 +65,11 @@ pt trace(Vector3D p, Vector3D to) {
 	}
 	if (finalStep != MAX_RAY_STEPS - 1) {
 		maxFinalStep = max(maxFinalStep, finalStep);
-		return 1 - light_k;
+		return (1 - light_k);
+		//return 1;
+		//maxL = max(maxL, log(2 * (1 - light_k) * (1 - light_k) / path / path) / log(10));
+		//minL = min(minL, log(2 * (1 - light_k) * (1 - light_k) / path / path) / log(10));
+		return (log(2 * (1 - light_k) * (1 - light_k) / path / path) / log(10) + 6) / 7.;
 	} else {
 		return 0;
 	}
@@ -61,7 +84,7 @@ void frame_(int frame_id, int xmin, int xmax) {
 			pt ax = +((((pt)x) / (PIC_SIZE_W - 1)) * 2. - 1.) * X_VIEW;
 			pt ay = -((((pt)y) / (PIC_SIZE_H - 1)) * 2. - 1.) * Y_VIEW;
 			Vector3D to = Vector3D(sin(ax), cos(ax) * sin(ay), -cos(ax) * cos(ay));
-			int brightness = 255 * trace(Vector3D(0.5, 0.5, 1), to);
+			int brightness = 255 * trace(Vector3D(0.5, 0.5 + 0.02 * frame_id / 4.0, 1), to, frame_id);
 			//brightness = distance2scene(Vector3D(x / 100. - 1, 0, -y / 100. - 1)) * 255;
 			mr.get(x, y, 0) = brightness;
 			mr.get(x, y, 1) = brightness;
@@ -90,7 +113,7 @@ int main() {
 	int frame_id = 0;
 	while (waitKey(1)) {
 		frame(frame_id);
-		imshow("main", m);
+		//imshow("main", m);
 		frame_id++;
 		cout << "f" << endl;
 		imwrite(to_string(frame_id) + ".jpg", m);
